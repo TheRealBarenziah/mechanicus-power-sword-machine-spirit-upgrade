@@ -3,11 +3,11 @@ return {
 		en = "\238\128\169 {#color(196,50,30)}Mechanicus Power Sword{#reset()}: Machine Spirit Upgrade",
 	},
 	mod_description = {
-		en = "Charge readouts for the Mechanicus Power Sword and other charge weapons: a 4/6 counter with optional recharge underline and recovery countdown, and a bar for the special's wind-up stages or the recharge tick. All off by default. Movable with Custom HUD or the offsets here.",
-		ru = "Индикация зарядов для силового меча Механикус и другого зарядного оружия: счётчик 4/6 с подчёркиванием перезарядки и отсчётом восстановления, плюс полоса стадий замаха спецатаки или тика перезарядки. По умолчанию всё выключено. Двигается через Custom HUD или смещениями здесь.",
-		["zh-cn"] = "为机械教动力剑及其他充能武器提供充能读数：4/6 计数器（可选回充下划线与恢复倒计时），以及显示特殊攻击蓄力阶段或回充计时的进度条。默认全部关闭。可用 Custom HUD 拖动，或使用此处的偏移设置。",
-		["zh-tw"] = "為機械教動力劍及其他充能武器提供充能讀數：4/6 計數器（可選回充底線與恢復倒數），以及顯示特殊攻擊蓄力階段或回充計時的進度條。預設全部關閉。可用 Custom HUD 拖曳，或使用此處的偏移設定。",
-		ja = "メカニカス・パワーソードなどチャージ武器のチャージ表示：4/6 カウンター（リチャージ下線と回復カウントダウンはお好みで）、特殊攻撃の溜め段階またはリチャージを示すバー。初期状態ではすべてオフ。Custom HUD かここのオフセットで移動可能。",
+		en = "Charge readouts for the Mechanicus Power Sword and other charge weapons: a 4/6 counter with optional recharge underline and recovery countdown, and a bar for the special's wind-up stages or the recharge tick. Overheat power weapons (Power Falchion, two-handed Power Sword) get the same treatment: estimated swings left or cooled percentage, a heat recovery bar, and a lockout countdown. All off by default. Movable with Custom HUD or the offsets here.",
+		ru = "Индикация зарядов для силового меча Механикус и другого зарядного оружия: счётчик 4/6 с подчёркиванием перезарядки и отсчётом восстановления, плюс полоса стадий замаха спецатаки или тика перезарядки. Перегревное силовое оружие (силовой фальшион, двуручный силовой меч) получает то же самое: оценку оставшихся ударов или процент охлаждения, полосу восстановления и отсчёт блокировки. По умолчанию всё выключено. Двигается через Custom HUD или смещениями здесь.",
+		["zh-cn"] = "为机械教动力剑及其他充能武器提供充能读数：4/6 计数器（可选回充下划线与恢复倒计时），以及显示特殊攻击蓄力阶段或回充计时的进度条。过热类动力武器（动力弯刀、双手动力剑）享有同样待遇：估算剩余挥击数或冷却百分比、热量恢复条、锁定倒计时。默认全部关闭。可用 Custom HUD 拖动，或使用此处的偏移设置。",
+		["zh-tw"] = "為機械教動力劍及其他充能武器提供充能讀數：4/6 計數器（可選回充底線與恢復倒數），以及顯示特殊攻擊蓄力階段或回充計時的進度條。過熱類動力武器（動力彎刀、雙手動力劍）享有同樣待遇：估算剩餘揮擊數或冷卻百分比、熱量恢復條、鎖定倒數。預設全部關閉。可用 Custom HUD 拖曳，或使用此處的偏移設定。",
+		ja = "メカニカス・パワーソードなどチャージ武器のチャージ表示：4/6 カウンター（リチャージ下線と回復カウントダウンはお好みで）、特殊攻撃の溜め段階またはリチャージを示すバー。オーバーヒート式のパワー武器（パワーファルシオン、両手持ちパワーソード）も同様に対応：残り振り回数の目安または冷却率、熱回復バー、ロックアウトのカウントダウン。初期状態ではすべてオフ。Custom HUD かここのオフセットで移動可能。",
 	},
 
 	numbers_group = {
@@ -55,11 +55,11 @@ return {
 		ja = "表示形式",
 	},
 	number_format_description = {
-		en = "Charges, or special uses (charges divided by the cost per empowered hit -- 4/8 on the Arc Maul; same as charges on cost-1 weapons).",
-		ru = "Заряды или применения спецатаки (заряды, делённые на цену усиленного удара -- 4/8 у дуговой булавы; на оружии с ценой 1 совпадает с зарядами).",
-		["zh-cn"] = "充能数，或特殊攻击使用次数（充能除以每次强化命中的消耗 -- 电弧锤为 4/8；消耗为 1 的武器与充能数相同）。",
-		["zh-tw"] = "充能數，或特殊攻擊使用次數（充能除以每次強化命中的消耗 -- 電弧鎚為 4/8；消耗為 1 的武器與充能數相同）。",
-		ja = "チャージ数、または特殊攻撃の使用回数（チャージ数を強化ヒット1回のコストで割った値 -- アークモールは 4/8。コスト1の武器ではチャージ数と同じ）。",
+		en = "Charges, or special uses (charges divided by the cost per empowered hit -- 4/8 on the Arc Maul; same as charges on cost-1 weapons). On overheat weapons: special uses = estimated powered swings before lockout, charges = cooled percentage (0 while locked out).",
+		ru = "Заряды или применения спецатаки (заряды, делённые на цену усиленного удара -- 4/8 у дуговой булавы; на оружии с ценой 1 совпадает с зарядами). На перегревном оружии: применения = оценка усиленных ударов до блокировки, заряды = процент охлаждения (0 при блокировке).",
+		["zh-cn"] = "充能数，或特殊攻击使用次数（充能除以每次强化命中的消耗 -- 电弧锤为 4/8；消耗为 1 的武器与充能数相同）。过热武器：使用次数 = 锁定前的估算强化挥击数，充能数 = 冷却百分比（锁定期间为 0）。",
+		["zh-tw"] = "充能數，或特殊攻擊使用次數（充能除以每次強化命中的消耗 -- 電弧鎚為 4/8；消耗為 1 的武器與充能數相同）。過熱武器：使用次數 = 鎖定前的估算強化揮擊數，充能數 = 冷卻百分比（鎖定期間為 0）。",
+		ja = "チャージ数、または特殊攻撃の使用回数（チャージ数を強化ヒット1回のコストで割った値 -- アークモールは 4/8。コスト1の武器ではチャージ数と同じ）。オーバーヒート武器では：使用回数 = ロックアウトまでの強化攻撃の目安、チャージ数 = 冷却率（ロックアウト中は 0）。",
 	},
 	number_format_current_max = {
 		en = "Charges (4/6)",
@@ -157,11 +157,11 @@ return {
 		ja = "リチャージ下線",
 	},
 	underline_enabled_description = {
-		en = "Thin line by the readout, fills toward the next special use. Hidden at full. Fill follows the readout colour, background the bar's background colour.",
-		ru = "Тонкая линия у счётчика, заполняется к следующему применению. Скрыта при полном запасе. Заливка -- цвета счётчика, фон -- цвета фона полосы.",
-		["zh-cn"] = "紧贴读数的细线，随下一次特殊使用的恢复而填充。充能满时隐藏。填充色跟随读数颜色，背景用进度条的背景色。",
-		["zh-tw"] = "緊貼讀數的細線，隨下一次特殊使用的恢復而填滿。充能滿時隱藏。填滿色跟隨讀數顏色，背景用進度條的背景色。",
-		ja = "数字のそばの細い線が次の特殊使用に向けて満ちる。満タン時は非表示。塗りは数字の色、背景はバーの背景色に従う。",
+		en = "Thin line by the readout, fills toward the next special use -- on overheat weapons, toward fully vented. Hidden at full. Fill follows the readout colour, background the bar's background colour.",
+		ru = "Тонкая линия у счётчика, заполняется к следующему применению -- на перегревном оружии к полному охлаждению. Скрыта при полном запасе. Заливка -- цвета счётчика, фон -- цвета фона полосы.",
+		["zh-cn"] = "紧贴读数的细线，随下一次特殊使用的恢复而填充 -- 过热武器则随完全散热而填充。充能满时隐藏。填充色跟随读数颜色，背景用进度条的背景色。",
+		["zh-tw"] = "緊貼讀數的細線，隨下一次特殊使用的恢復而填滿 -- 過熱武器則隨完全散熱而填滿。充能滿時隱藏。填滿色跟隨讀數顏色，背景用進度條的背景色。",
+		ja = "数字のそばの細い線が次の特殊使用に向けて満ちる -- オーバーヒート武器では完全冷却に向けて。満タン時は非表示。塗りは数字の色、背景はバーの背景色に従う。",
 	},
 
 	underline_position = {
@@ -201,11 +201,11 @@ return {
 		ja = "回復カウントダウン",
 	},
 	hint_countdown_description = {
-		en = "Seconds to the next charge after a special swing. Only during that delay -- never for the ordinary tick, never on the Arc Maul. Needs the numbers.",
-		ru = "Секунды до следующего заряда после спецудара. Только во время этой задержки -- не для обычного тика и не на дуговой булаве. Требует включённых чисел.",
-		["zh-cn"] = "特殊挥击后距下一充能的秒数。仅在该延迟期间显示 -- 普通回充不显示，电弧锤不显示。需要开启数字。",
-		["zh-tw"] = "特殊揮擊後距下一充能的秒數。僅在該延遲期間顯示 -- 普通回充不顯示，電弧鎚不顯示。需要開啟數字。",
-		ja = "特殊攻撃の後、次のチャージまでの秒数。その遅延中のみ表示 -- 通常のリチャージやアークモールでは出ない。数字の表示が必要。",
+		en = "Seconds to the next charge after a special swing. Only during that delay -- never for the ordinary tick, never on the Arc Maul. On overheat weapons: seconds until the lockout clears. Needs the numbers.",
+		ru = "Секунды до следующего заряда после спецудара. Только во время этой задержки -- не для обычного тика и не на дуговой булаве. На перегревном оружии: секунды до снятия блокировки. Требует включённых чисел.",
+		["zh-cn"] = "特殊挥击后距下一充能的秒数。仅在该延迟期间显示 -- 普通回充不显示，电弧锤不显示。过热武器：距过热锁定解除的秒数。需要开启数字。",
+		["zh-tw"] = "特殊揮擊後距下一充能的秒數。僅在該延遲期間顯示 -- 普通回充不顯示，電弧鎚不顯示。過熱武器：距過熱鎖定解除的秒數。需要開啟數字。",
+		ja = "特殊攻撃の後、次のチャージまでの秒数。その遅延中のみ表示 -- 通常のリチャージやアークモールでは出ない。オーバーヒート武器ではロックアウト解除までの秒数。数字の表示が必要。",
 	},
 
 	countdown_font_size = {
@@ -337,6 +337,35 @@ return {
 		ja = "0-255。",
 	},
 
+	band_scale = {
+		en = "Band limits are",
+		ru = "Границы диапазонов",
+		["zh-cn"] = "区间上限单位",
+		["zh-tw"] = "區間上限單位",
+		ja = "段階の基準",
+	},
+	band_scale_description = {
+		en = "How 'up to' limits are read: as the displayed number itself, or as a percentage of the weapon's maximum, which scales the bands to each weapon -- 'up to 20' marks 1/6 charges on the Mechanicus Power Sword and 7/38 swings on a Power Falchion.",
+		ru = "Как читать границы «до»: как само показанное число или как процент от максимума оружия -- тогда диапазоны подстраиваются под каждое оружие: «до 20» это 1/6 зарядов у меча Механикус и 7/38 ударов у силового фальшиона.",
+		["zh-cn"] = "「上限」的解读方式：按显示数字本身，或按武器最大值的百分比 -- 后者会让区间自动适配每件武器：「上限 20」在机械教动力剑上是 1/6 充能，在动力弯刀上是 7/38 次挥击。",
+		["zh-tw"] = "「上限」的解讀方式：按顯示數字本身，或按武器最大值的百分比 -- 後者會讓區間自動適配每件武器：「上限 20」在機械教動力劍上是 1/6 充能，在動力彎刀上是 7/38 次揮擊。",
+		ja = "「上限」の読み方：表示中の数値そのまま、または武器の最大値に対する割合。割合なら武器ごとに自動調整 -- 「上限 20」はメカニカス・パワーソードで 1/6 チャージ、パワーファルシオンで 7/38 振りに相当。",
+	},
+	band_scale_absolute = {
+		en = "Displayed number",
+		ru = "Показанное число",
+		["zh-cn"] = "显示数字",
+		["zh-tw"] = "顯示數字",
+		ja = "表示中の数値",
+	},
+	band_scale_percent = {
+		en = "Percent of max",
+		ru = "Процент от максимума",
+		["zh-cn"] = "最大值百分比",
+		["zh-tw"] = "最大值百分比",
+		ja = "最大値の割合",
+	},
+
 	low_max = {
 		en = "Low band: up to",
 		ru = "Нижний диапазон: до",
@@ -345,11 +374,11 @@ return {
 		ja = "低段階：上限",
 	},
 	low_max_description = {
-		en = "Displayed number at or below this uses the low colour. Band mode only.",
-		ru = "Показанное число не выше этого -- нижний цвет. Только в режиме диапазонов.",
-		["zh-cn"] = "显示数字不高于此值时使用低区间颜色。仅限区间模式。",
-		["zh-tw"] = "顯示數字不高於此值時使用低區間顏色。僅限區間模式。",
-		ja = "表示中の数値がこれ以下なら低段階の色。段階モードのみ。",
+		en = "Displayed number at or below this uses the low colour (with 'Percent of max': percent of the maximum). Band mode only.",
+		ru = "Показанное число не выше этого -- нижний цвет (при «Процент от максимума» -- процент от максимума). Только в режиме диапазонов.",
+		["zh-cn"] = "显示数字不高于此值时使用低区间颜色（选「最大值百分比」时按最大值的百分比）。仅限区间模式。",
+		["zh-tw"] = "顯示數字不高於此值時使用低區間顏色（選「最大值百分比」時按最大值的百分比）。僅限區間模式。",
+		ja = "表示中の数値がこれ以下なら低段階の色（「最大値の割合」選択時は最大値に対する割合）。段階モードのみ。",
 	},
 	low_r = {
 		en = "Low band: red",
@@ -474,11 +503,11 @@ return {
 		ja = "バーの表示内容",
 	},
 	bar_mode_description = {
-		en = "Wind-up: visible while holding the special, stages marked on the bar. Recharge tick: time to the next charge.",
-		ru = "Замах: видна, пока удерживается спецатака, стадии отмечены на полосе. Тик перезарядки: время до следующего заряда.",
-		["zh-cn"] = "蓄力：按住特殊攻击时可见，阶段在条上标出。回充计时：距下一充能的时间。",
-		["zh-tw"] = "蓄力：按住特殊攻擊時可見，階段在條上標出。回充計時：距下一充能的時間。",
-		ja = "溜め：特殊攻撃を押している間だけ表示、段階をバー上に区切る。リチャージ：次のチャージまでの時間。",
+		en = "Wind-up: visible while holding the special, stages marked on the bar; overheat weapons have no wind-up, so they show their heat recovery instead. Recharge tick: time to the next charge -- on overheat weapons, the vented fraction, in the final-stage colour while locked out.",
+		ru = "Замах: видна, пока удерживается спецатака, стадии отмечены на полосе; у перегревного оружия замаха нет, вместо него показывается охлаждение. Тик перезарядки: время до следующего заряда -- на перегревном оружии доля охлаждения, при блокировке цветом финальной стадии.",
+		["zh-cn"] = "蓄力：按住特殊攻击时可见，阶段在条上标出；过热武器没有蓄力，改为显示散热恢复。回充计时：距下一充能的时间 -- 过热武器显示散热比例，锁定期间用最终阶段颜色。",
+		["zh-tw"] = "蓄力：按住特殊攻擊時可見，階段在條上標出；過熱武器沒有蓄力，改為顯示散熱恢復。回充計時：距下一充能的時間 -- 過熱武器顯示散熱比例，鎖定期間用最終階段顏色。",
+		ja = "溜め：特殊攻撃を押している間だけ表示、段階をバー上に区切る。オーバーヒート武器には溜めがないため、代わりに冷却回復を表示。リチャージ：次のチャージまでの時間 -- オーバーヒート武器では冷却の割合、ロックアウト中は最終段階の色。",
 	},
 	bar_mode_windup = {
 		en = "Special wind-up",
@@ -770,11 +799,11 @@ return {
 		ja = "標準ゲージ",
 	},
 	stock_gauge_description = {
-		en = "The game's own charge arc for covered weapons.",
-		ru = "Игровая дуга зарядов у охваченного оружия.",
-		["zh-cn"] = "游戏自带的充能弧（针对覆盖的武器）。",
-		["zh-tw"] = "遊戲自帶的充能弧（針對覆蓋的武器）。",
-		ja = "ゲーム本来のチャージ弧（対象武器のみ）。",
+		en = "The game's own charge arc or heat bar for covered weapons.",
+		ru = "Игровая дуга зарядов или полоса нагрева у охваченного оружия.",
+		["zh-cn"] = "游戏自带的充能弧或热量条（针对覆盖的武器）。",
+		["zh-tw"] = "遊戲自帶的充能弧或熱量條（針對覆蓋的武器）。",
+		ja = "ゲーム本来のチャージ弧または熱バー（対象武器のみ）。",
 	},
 	stock_gauge_hidden = {
 		en = "Hidden",
@@ -892,11 +921,11 @@ return {
 		ja = "色を変更",
 	},
 	stock_recolor_description = {
-		en = "Repaint the stock gauge's segments. Starts on the game's own colours - nothing changes until a slider moves. Ignored while the gauge is hidden.",
-		ru = "Перекрашивает сегменты штатной шкалы. Начинает с игровых цветов - пока не сдвинешь ползунок, ничего не изменится. Со скрытой шкалой не работает.",
-		["zh-cn"] = "重新着色原版充能表的分段。初始值即游戏原色 - 不动滑块就没有变化。充能表隐藏时无效。",
-		["zh-tw"] = "重新著色原版充能表的分段。初始值即遊戲原色 - 不動滑桿就沒有變化。充能表隱藏時無效。",
-		ja = "標準ゲージのセグメントを塗り替える。初期値はゲーム本来の色 - スライダーを動かすまで変化なし。ゲージ非表示時は無効。",
+		en = "Repaint the stock gauge's segments; on overheat weapons, tint the heat bar with the 'Charged' colour. Starts on the game's own colours - nothing changes until a slider moves. Ignored while the gauge is hidden.",
+		ru = "Перекрашивает сегменты штатной шкалы; на перегревном оружии подкрашивает полосу нагрева цветом «Заряжено». Начинает с игровых цветов - пока не сдвинешь ползунок, ничего не изменится. Со скрытой шкалой не работает.",
+		["zh-cn"] = "重新着色原版充能表的分段；过热武器则以「已充能」颜色为热量条着色。初始值即游戏原色 - 不动滑块就没有变化。充能表隐藏时无效。",
+		["zh-tw"] = "重新著色原版充能表的分段；過熱武器則以「已充能」顏色為熱量條著色。初始值即遊戲原色 - 不動滑桿就沒有變化。充能表隱藏時無效。",
+		ja = "標準ゲージのセグメントを塗り替える。オーバーヒート武器では熱バーを「充填済み」の色で着色。初期値はゲーム本来の色 - スライダーを動かすまで変化なし。ゲージ非表示時は無効。",
 	},
 	stock_filled_r = {
 		en = "Charged: red",
@@ -1006,11 +1035,11 @@ return {
 		ja = "対象武器",
 	},
 	scope_description = {
-		en = "Cooldown only = Mechanicus Power Sword and Arc Maul. All adds kill/block charges, e.g. the two-handed force sword.",
-		ru = "Только кулдаун = силовой меч Механикус и дуговая булава. «Все» добавляет заряды за убийства/блоки, например двуручный психосиловой меч.",
-		["zh-cn"] = "仅冷却 = 机械教动力剑和电弧锤。「全部」加入击杀/格挡充能武器，例如双手灵能剑。",
-		["zh-tw"] = "僅冷卻 = 機械教動力劍和電弧鎚。「全部」加入擊殺/格擋充能武器，例如雙手靈能劍。",
-		ja = "クールダウンのみ = メカニカス・パワーソードとアークモール。「すべて」はキル／ブロック式も対象、例：両手持ちフォースソード。",
+		en = "Cooldown only = Mechanicus Power Sword and Arc Maul. All adds kill/block charges (two-handed force sword, maul & shield, dual shivs) and overheat power weapons (Power Falchion, two-handed Power Sword).",
+		ru = "Только кулдаун = силовой меч Механикус и дуговая булава. «Все» добавляет заряды за убийства/блоки (двуручный психосиловой меч, булава со щитом, парные заточки) и перегревное силовое оружие (силовой фальшион, двуручный силовой меч).",
+		["zh-cn"] = "仅冷却 = 机械教动力剑和电弧锤。「全部」加入击杀/格挡充能武器（双手灵能剑、动力锤与盾、双持小刀）以及过热类动力武器（动力弯刀、双手动力剑）。",
+		["zh-tw"] = "僅冷卻 = 機械教動力劍和電弧鎚。「全部」加入擊殺/格擋充能武器（雙手靈能劍、動力鎚與盾、雙持小刀）以及過熱類動力武器（動力彎刀、雙手動力劍）。",
+		ja = "クールダウンのみ = メカニカス・パワーソードとアークモール。「すべて」はキル／ブロック式（両手持ちフォースソード、モール＆シールド、デュアルシヴ）とオーバーヒート式パワー武器（パワーファルシオン、両手持ちパワーソード）も対象。",
 	},
 	scope_all_charges = {
 		en = "All charge weapons",

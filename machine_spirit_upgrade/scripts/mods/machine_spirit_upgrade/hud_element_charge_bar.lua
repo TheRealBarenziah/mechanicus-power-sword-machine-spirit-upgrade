@@ -247,47 +247,60 @@ function HudElementMPSMachineSpiritUpgradeBar:_draw_windup(progress, mark_1, mar
 	hide_cells(style, cell_index + 1)
 end
 
-function HudElementMPSMachineSpiritUpgradeBar:_draw_recharge(phase, progress, num, max, cost)
+function HudElementMPSMachineSpiritUpgradeBar:_draw_recharge(kind, phase, progress, num, max, cost, in_recovery)
 	local style, vertical = self:_draw_track()
 	local length = cfg.bar_length
 	local thickness = cfg.bar_thickness
 	local ox = cfg.bar_offset_x
 	local oy = cfg.bar_offset_y
-	local r, g, b = cfg.regen_r, cfg.regen_g, cfg.regen_b
+	local overheat = kind == "overheat"
+	local r, g, b
 
-	if cfg.bar_shape == "segments" then
-		local cells = max
-		local filled = phase == "full" and max or num + progress
+	if overheat and in_recovery then
+		r, g, b = cfg.retention_r, cfg.retention_g, cfg.retention_b
+	else
+		r, g, b = cfg.regen_r, cfg.regen_g, cfg.regen_b
+	end
+
+	local fill, cells, filled
+
+	if overheat then
+		-- the whole bar is the vented fraction; one cell per estimated swing
+		fill = phase == "full" and 1 or progress
+		cells = max
+		filled = fill * max
+	else
+		fill = mod.use_progress(phase, progress, num, cost)
+		cells = max
+		filled = phase == "full" and max or num + progress
 
 		if cells > MAX_CELLS and cost and cost > 1 then
 			cells = math.floor(cells / cost)
 			filled = filled / cost
 		end
+	end
 
-		if cells >= 1 and cells <= MAX_CELLS then
-			style.fill.color[1] = 0
+	if cfg.bar_shape == "segments" and cells >= 1 and cells <= MAX_CELLS then
+		style.fill.color[1] = 0
 
-			local cell_w = (length - CELL_GAP * (cells - 1)) / cells
-			local left = ox - length * 0.5 + cell_w * 0.5
+		local cell_w = (length - CELL_GAP * (cells - 1)) / cells
+		local left = ox - length * 0.5 + cell_w * 0.5
 
-			for ii = 1, cells do
-				local cell_style = style["cell_" .. ii]
-				local fill_ratio = math.clamp(filled - (ii - 1), 0, 1)
-				local alpha = fill_ratio > 0 and cfg.bar_opacity * fill_ratio or 0
+		for ii = 1, cells do
+			local cell_style = style["cell_" .. ii]
+			local fill_ratio = math.clamp(filled - (ii - 1), 0, 1)
+			local alpha = fill_ratio > 0 and cfg.bar_opacity * fill_ratio or 0
 
-				set_rect(cell_style, alpha, r, g, b, cell_w, thickness,
-					left + (ii - 1) * (cell_w + CELL_GAP), oy)
-			end
-
-			hide_cells(style, cells + 1)
-
-			return
+			set_rect(cell_style, alpha, r, g, b, cell_w, thickness,
+				left + (ii - 1) * (cell_w + CELL_GAP), oy)
 		end
+
+		hide_cells(style, cells + 1)
+
+		return
 	end
 
 	hide_cells(style, 1)
-
-	local fill = mod.use_progress(phase, progress, num, cost)
 
 	if vertical then
 		local fill_h = length * fill
@@ -321,11 +334,17 @@ function HudElementMPSMachineSpiritUpgradeBar:update(dt, t, ui_renderer, render_
 
 					drawn = true
 				end
-			else
-				local phase, progress, num, max, _, _, cost = mod.recharge_state(player_extensions, gameplay_t)
+			end
 
-				if phase and not (phase == "full" and cfg.bar_hide_at_max) then
-					self:_draw_recharge(phase, progress, num, max, cost)
+			-- recharge mode; wind-up mode falls back to this on overheat
+			-- weapons, whose special has no wind-up to show
+			if not drawn then
+				local kind, phase, progress, num, max, _, in_recovery, cost = mod.display_state(player_extensions, gameplay_t)
+
+				if (cfg.bar_mode == "recharge" or kind == "overheat")
+					and phase
+					and not (phase == "full" and cfg.bar_hide_at_max) then
+					self:_draw_recharge(kind, phase, progress, num, max, cost, in_recovery)
 
 					drawn = true
 				end

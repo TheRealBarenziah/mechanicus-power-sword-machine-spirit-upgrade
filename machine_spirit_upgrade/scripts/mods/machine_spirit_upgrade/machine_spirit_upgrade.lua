@@ -6,6 +6,17 @@ local CHARGE_COUNTER_TYPES = {
 	block_charges = true,
 }
 
+-- Some charge weapons track num_special_charges without declaring a stock
+-- weapon_counter (Arbites maul & shield, dual shivs); recognize them by class.
+local SPECIAL_CLASS_COUNTER_TYPES = {
+	WeaponSpecialCooldownCharges = "cooldown_charges",
+	WeaponSpecialHitCharges = "cooldown_charges",
+	WeaponSpecialKillCountCharges = "kill_charges",
+	WeaponSpecialBlockCharges = "block_charges",
+}
+
+local OVERHEAT_COUNTER_TYPE = "overheat_lockout"
+
 local DEFAULTS = {
 	numbers_enabled = false,
 	number_format = "uses_max",
@@ -15,6 +26,7 @@ local DEFAULTS = {
 	color_r = 255,
 	color_g = 255,
 	color_b = 255,
+	band_scale = "absolute",
 	low_max = 0,
 	low_r = 224,
 	low_g = 64,
@@ -93,7 +105,7 @@ local BOOLEANS = {
 }
 
 local STRINGS = {
-	"number_format", "color_mode", "underline_position",
+	"number_format", "color_mode", "band_scale", "underline_position",
 	"bar_mode", "bar_shape", "scope", "stock_gauge", "stock_mirror",
 }
 
@@ -125,16 +137,26 @@ end
 
 refresh_cfg()
 
-function mod.handles_counter_type(counter_type)
-	if not counter_type or not CHARGE_COUNTER_TYPES[counter_type] then
-		return false
+-- "charges" for discrete-charge weapons, "overheat" for heat/lockout weapons
+-- (power falchion, two-handed power sword), nil for anything the mod leaves alone.
+function mod.display_kind(counter_type)
+	if not counter_type then
+		return nil
 	end
 
-	if cfg.scope == "cooldown_only" then
-		return counter_type == "cooldown_charges"
+	if counter_type == OVERHEAT_COUNTER_TYPE then
+		return cfg.scope ~= "cooldown_only" and "overheat" or nil
 	end
 
-	return true
+	if not CHARGE_COUNTER_TYPES[counter_type] then
+		return nil
+	end
+
+	if cfg.scope == "cooldown_only" and counter_type ~= "cooldown_charges" then
+		return nil
+	end
+
+	return "charges"
 end
 
 local HUB_GAME_MODES = {
@@ -155,19 +177,35 @@ local SLOT_SECONDARY = "slot_secondary"
 local function charge_weapon_template(player_extensions, slot_name)
 	local visual_loadout_extension = player_extensions.visual_loadout
 	local weapon_template = visual_loadout_extension and visual_loadout_extension:weapon_template_from_slot(slot_name)
-	local weapon_counter = weapon_template and weapon_template.weapon_counter
 
-	if not weapon_counter or not mod.handles_counter_type(weapon_counter.weapon_counter_type) then
+	if not weapon_template then
 		return nil
 	end
 
-	local weapon_special_tweak_data = weapon_template.weapon_special_tweak_data
+	local weapon_counter = weapon_template.weapon_counter
+	local counter_type = weapon_counter and weapon_counter.weapon_counter_type
+		or SPECIAL_CLASS_COUNTER_TYPES[weapon_template.weapon_special_class]
+	local kind = mod.display_kind(counter_type)
 
-	if not weapon_special_tweak_data or not weapon_special_tweak_data.max_charges then
-		return nil
+	if kind == "overheat" then
+		if not weapon_template.overheat_configuration then
+			return nil
+		end
+
+		return weapon_template, counter_type, kind
 	end
 
-	return weapon_template, weapon_counter.weapon_counter_type
+	if kind == "charges" then
+		local weapon_special_tweak_data = weapon_template.weapon_special_tweak_data
+
+		if not weapon_special_tweak_data or not weapon_special_tweak_data.max_charges then
+			return nil
+		end
+
+		return weapon_template, counter_type, kind
+	end
+
+	return nil
 end
 
 function mod.charge_slot(player_extensions)
@@ -179,10 +217,10 @@ function mod.charge_slot(player_extensions)
 	local wielded_slot = inventory_component and inventory_component.wielded_slot
 
 	if wielded_slot == SLOT_PRIMARY or wielded_slot == SLOT_SECONDARY then
-		local weapon_template, counter_type = charge_weapon_template(player_extensions, wielded_slot)
+		local weapon_template, counter_type, kind = charge_weapon_template(player_extensions, wielded_slot)
 
 		if weapon_template then
-			return wielded_slot, weapon_template, counter_type
+			return wielded_slot, weapon_template, counter_type, kind
 		end
 	end
 
@@ -191,18 +229,18 @@ function mod.charge_slot(player_extensions)
 	end
 
 	if wielded_slot ~= SLOT_PRIMARY then
-		local weapon_template, counter_type = charge_weapon_template(player_extensions, SLOT_PRIMARY)
+		local weapon_template, counter_type, kind = charge_weapon_template(player_extensions, SLOT_PRIMARY)
 
 		if weapon_template then
-			return SLOT_PRIMARY, weapon_template, counter_type
+			return SLOT_PRIMARY, weapon_template, counter_type, kind
 		end
 	end
 
 	if wielded_slot ~= SLOT_SECONDARY then
-		local weapon_template, counter_type = charge_weapon_template(player_extensions, SLOT_SECONDARY)
+		local weapon_template, counter_type, kind = charge_weapon_template(player_extensions, SLOT_SECONDARY)
 
 		if weapon_template then
-			return SLOT_SECONDARY, weapon_template, counter_type
+			return SLOT_SECONDARY, weapon_template, counter_type, kind
 		end
 	end
 end
@@ -225,13 +263,21 @@ function mod.use_progress(phase, progress, num, cost)
 	return (num % cost + progress) / cost
 end
 
-function mod.charge_color(num)
+function mod.charge_color(num, max)
 	if cfg.color_mode == "thresholds" then
-		if num <= cfg.low_max then
+		local low = cfg.low_max
+		local mid = cfg.mid_max
+
+		if cfg.band_scale == "percent" and max and max > 0 then
+			low = max * low * 0.01
+			mid = max * mid * 0.01
+		end
+
+		if num <= low then
 			return cfg.low_r, cfg.low_g, cfg.low_b
 		end
 
-		if num <= cfg.mid_max then
+		if num <= mid then
 			return cfg.mid_r, cfg.mid_g, cfg.mid_b
 		end
 	end
@@ -260,13 +306,7 @@ local recharge = {
 	tick_end = nil,
 }
 
-function mod.recharge_state(player_extensions, t)
-	local slot_name, weapon_template, counter_type = mod.charge_slot(player_extensions)
-
-	if not slot_name or counter_type ~= "cooldown_charges" then
-		return nil
-	end
-
+local function cooldown_recharge_state(player_extensions, slot_name, weapon_template, t)
 	if slot_name ~= recharge.slot_name or weapon_template ~= recharge.template then
 		recharge.slot_name = slot_name
 		recharge.template = weapon_template
@@ -344,6 +384,157 @@ function mod.recharge_state(player_extensions, t)
 	return "recharge", progress, num, max, remaining, span > cooldown, cost
 end
 
+local WeaponChargeTemplates
+
+local function static_charge_template(template_name)
+	if WeaponChargeTemplates == nil then
+		local ok, templates = pcall(require, "scripts/settings/equipment/weapon_handling_templates/weapon_charge_templates")
+
+		WeaponChargeTemplates = ok and templates or false
+	end
+
+	return WeaponChargeTemplates and WeaponChargeTemplates[template_name] or nil
+end
+
+-- The per-item charge template with the weapon's stat lerps applied; the static
+-- settings table is the fallback when the weapon extension isn't available.
+local function resolved_charge_template(player_extensions, slot_name, template_name)
+	if not template_name then
+		return nil
+	end
+
+	local weapon_extension = player_extensions.weapon
+	local weapons = weapon_extension and weapon_extension._weapons
+	local weapon = weapons and weapons[slot_name]
+	local tweak_templates = weapon and weapon.weapon_tweak_templates
+	local charge_templates = tweak_templates and tweak_templates.charge
+
+	return charge_templates and charge_templates[template_name] or static_charge_template(template_name)
+end
+
+-- Resolved templates hold plain numbers; static ones still hold
+-- { lerp_basic, lerp_perfect } stat-lerp tables.
+local function lerp_value(value, fallback)
+	if type(value) == "number" then
+		return value
+	end
+
+	if type(value) == "table" then
+		return value.lerp_basic or value.lerp_perfect or fallback
+	end
+
+	return fallback
+end
+
+local DEFAULT_SWING_HEAT = 0.05
+local DEFAULT_VENT_DURATION = 15
+
+local eta_bands = { {}, {}, {}, {} }
+
+local function overheat_eta(heat, decay, dissipation, wait)
+	local duration = lerp_value(decay.auto_vent_duration, DEFAULT_VENT_DURATION)
+	local thresholds = decay.thresholds
+	local bands = eta_bands
+
+	if thresholds then
+		bands[1][1] = thresholds.critical or 1
+		bands[1][2] = decay.critical_threshold_decay_rate_modifier or 1
+		bands[2][1] = thresholds.high or 1
+		bands[2][2] = decay.high_threshold_decay_rate_modifier or 1
+		bands[3][1] = thresholds.low or 1
+		bands[3][2] = decay.low_threshold_decay_rate_modifier or 1
+	else
+		bands[1][1] = 1
+		bands[2][1] = 1
+		bands[3][1] = 1
+	end
+
+	bands[4][1] = 0
+	bands[4][2] = 1
+
+	local eta = 0
+	local remaining = heat
+
+	for ii = 1, 4 do
+		local floor_heat = bands[ii][1]
+		local rate_modifier = bands[ii][2]
+
+		if remaining > floor_heat and rate_modifier and rate_modifier > 0 then
+			eta = eta + (remaining - floor_heat) * duration / rate_modifier
+			remaining = floor_heat
+		end
+	end
+
+	if dissipation and dissipation > 0 and dissipation ~= 1 then
+		eta = eta / dissipation
+	end
+
+	if wait and wait > 0 then
+		eta = eta + wait
+	end
+
+	return eta
+end
+
+-- Same tuple shape as the cooldown state. progress is the cooled fraction,
+-- num/max are estimated powered swings before lockout, remaining is seconds
+-- until fully vented, in_recovery flags an active lockout.
+function mod.overheat_state(player_extensions, slot_name, weapon_template, t)
+	local slot_component = player_extensions.unit_data:read_component(slot_name)
+	local heat = math.clamp(slot_component.overheat_current_percentage or 0, 0, 1)
+	local overheat_state = slot_component.overheat_state
+	local locked = overheat_state == "lockout" or overheat_state == "soft_lockout"
+	local charge_template = resolved_charge_template(player_extensions, slot_name, weapon_template.special_charge_template)
+	local overtime = charge_template and charge_template.overheat_overtime
+	local per_swing = overtime and lerp_value(overtime.overheat_percent, DEFAULT_SWING_HEAT) or DEFAULT_SWING_HEAT
+
+	if per_swing <= 0 then
+		per_swing = DEFAULT_SWING_HEAT
+	end
+
+	local max_swings = math.max(math.floor(1 / per_swing + 0.001), 1)
+
+	if heat <= 0 and not locked then
+		return "full", 1, max_swings, max_swings, 0, false, 1
+	end
+
+	local headroom = 1 - heat
+	local swings = locked and 0 or math.min(math.floor(headroom / per_swing + 0.001), max_swings)
+	local decay = charge_template and charge_template.overheat_decay
+	local remaining = 0
+
+	if decay then
+		local buff_extension = player_extensions.buff
+		local stat_buffs = buff_extension and buff_extension:stat_buffs()
+		local dissipation = stat_buffs and stat_buffs.overheat_dissipation_multiplier or 1
+		local last_charge_t = slot_component.overheat_last_charge_at_t
+		local wait = last_charge_t and last_charge_t + (decay.auto_vent_delay or 0) - t or 0
+
+		remaining = overheat_eta(heat, decay, dissipation, wait)
+	end
+
+	return "recharge", headroom, swings, max_swings, remaining, locked, 1
+end
+
+-- One entry point for the HUD elements: kind plus the state tuple for weapons
+-- with a timed refill (cooldown charges, overheat). Kill/block charge weapons
+-- return their kind alone - their numbers come straight off the component.
+function mod.display_state(player_extensions, t)
+	local slot_name, weapon_template, counter_type, kind = mod.charge_slot(player_extensions)
+
+	if not slot_name then
+		return nil
+	end
+
+	if kind == "overheat" then
+		return kind, mod.overheat_state(player_extensions, slot_name, weapon_template, t)
+	end
+
+	-- covers the passive-refill weapons too (Arc Maul, maul & shield); weapons
+	-- with neither a cooldown nor a passive interval get no timed state
+	return kind, cooldown_recharge_state(player_extensions, slot_name, weapon_template, t)
+end
+
 mod:register_hud_element({
 	class_name = "HudElementMPSMachineSpiritUpgradeNumbers",
 	filename = "machine_spirit_upgrade/scripts/mods/machine_spirit_upgrade/hud_element_charge_numbers",
@@ -369,7 +560,7 @@ mod:hook("HudElementWeaponCounter", "_weapon_counter_settings", function(func, s
 		return settings
 	end
 
-	if mod.handles_counter_type(settings.weapon_counter_type) then
+	if mod.display_kind(settings.weapon_counter_type) then
 		return nil
 	end
 
@@ -455,11 +646,58 @@ end
 local PULSE_FILL_PEAK = 5
 local PULSE_OUTLINE_PEAK = 2
 
+local transformed_widgets = setmetatable({}, { __mode = "k" })
+local tinted_widgets = setmetatable({}, { __mode = "k" })
+
+-- Overheat weapons draw a single material bar whose style colour starts as a
+-- shared settings table - swap in an own table before tinting, never mutate it.
+local function tint_overheat_widget(widget, overheat_style)
+	local color = widget.msu_tint_color
+
+	if not color then
+		local original = overheat_style.color
+
+		color = { original and original[1] or 255, 255, 255, 255 }
+		widget.msu_original_color = original
+		widget.msu_tint_color = color
+		overheat_style.color = color
+	end
+
+	color[2] = cfg.stock_filled_r
+	color[3] = cfg.stock_filled_g
+	color[4] = cfg.stock_filled_b
+end
+
+local function untint_widget(widget)
+	if not widget.msu_tint_color then
+		return
+	end
+
+	local style = widget.style
+	local overheat_style = style and style.charge_bar
+
+	if overheat_style then
+		overheat_style.color = widget.msu_original_color or overheat_style.color
+	end
+
+	widget.msu_tint_color = nil
+	widget.msu_original_color = nil
+	tinted_widgets[widget] = nil
+end
+
 local function recolor_widget(widget)
 	local style = widget.style
 	local content = widget.content
 
 	if not style or not content then
+		return
+	end
+
+	local overheat_style = style.charge_bar
+
+	if overheat_style then
+		tint_overheat_widget(widget, overheat_style)
+
 		return
 	end
 
@@ -501,8 +739,6 @@ local function recolor_widget(widget)
 	end
 end
 
-local transformed_widgets = setmetatable({}, { __mode = "k" })
-
 local function restore_widget(widget)
 	apply_transform(widget, 0, 0, 0, false, false)
 
@@ -519,7 +755,7 @@ mod:hook_safe("HudElementWeaponCounter", "_update_slot", function(self, dt, t, s
 	end
 
 	local counter_type = self._slot_weapon_counter_type[slot_name]
-	local handled = mod:is_enabled() and mod.handles_counter_type(counter_type)
+	local handled = mod:is_enabled() and mod.display_kind(counter_type) ~= nil
 
 	if handled and cfg.stock_gauge == "transformed" then
 		ensure_transformable(widget)
@@ -538,12 +774,19 @@ mod:hook_safe("HudElementWeaponCounter", "_update_slot", function(self, dt, t, s
 
 	if handled and cfg.stock_recolor and cfg.stock_gauge ~= "hidden" then
 		recolor_widget(widget)
+		tinted_widgets[widget] = true
+	elseif widget.msu_tint_color then
+		untint_widget(widget)
 	end
 end)
 
 function mod.on_disabled()
 	for widget in pairs(transformed_widgets) do
 		restore_widget(widget)
+	end
+
+	for widget in pairs(tinted_widgets) do
+		untint_widget(widget)
 	end
 end
 

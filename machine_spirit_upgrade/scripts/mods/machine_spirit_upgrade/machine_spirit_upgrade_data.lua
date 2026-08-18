@@ -75,13 +75,22 @@ return {
 								{
 									text = "color_mode_thresholds",
 									value = "thresholds",
-									show_widgets = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 },
+									show_widgets = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 },
 								},
 							},
 							sub_widgets = {
 								channel("color_r", 255),
 								channel("color_g", 255),
 								channel("color_b", 255),
+								{
+									setting_id = "band_scale",
+									type = "dropdown",
+									default_value = "absolute",
+									options = {
+										{ text = "band_scale_absolute", value = "absolute" },
+										{ text = "band_scale_percent", value = "percent" },
+									},
+								},
 								numeric("low_max", 0, 0, 40),
 								channel("low_r", 224),
 								channel("low_g", 64),

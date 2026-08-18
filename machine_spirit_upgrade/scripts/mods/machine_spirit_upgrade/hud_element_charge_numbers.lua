@@ -83,6 +83,7 @@ function HudElementMPSMachineSpiritUpgradeNumbers:init(parent, draw_layer, start
 
 	self._num = nil
 	self._max = nil
+	self._kind = nil
 	self._cfg_version = nil
 end
 
@@ -91,17 +92,37 @@ function HudElementMPSMachineSpiritUpgradeNumbers:_charges(player_extensions)
 		return nil
 	end
 
-	local slot_name, weapon_template = mod.charge_slot(player_extensions)
+	local slot_name, weapon_template, _, kind = mod.charge_slot(player_extensions)
 
 	if not slot_name then
 		return nil
+	end
+
+	local format = cfg.number_format
+
+	if kind == "overheat" then
+		local t = mod.gameplay_time()
+
+		if not t then
+			return nil
+		end
+
+		local _, progress, swings, max_swings, _, locked = mod.overheat_state(player_extensions, slot_name, weapon_template, t)
+
+		if format == "uses" or format == "uses_max" then
+			return swings, max_swings, kind
+		end
+
+		-- 0 while locked out; the underline and countdown carry the recovery
+		local percent = locked and 0 or math.floor(progress * 100 + 0.5)
+
+		return percent, 100, kind
 	end
 
 	local inventory_slot_component = player_extensions.unit_data:read_component(slot_name)
 	local tweak_data = weapon_template.weapon_special_tweak_data
 	local num = inventory_slot_component and inventory_slot_component.num_special_charges or 0
 	local max = tweak_data.max_charges
-	local format = cfg.number_format
 
 	if format == "uses" or format == "uses_max" then
 		local cost = mod.special_use_cost(tweak_data)
@@ -112,21 +133,25 @@ function HudElementMPSMachineSpiritUpgradeNumbers:_charges(player_extensions)
 		end
 	end
 
-	return num, max
+	return num, max, kind
 end
 
-function HudElementMPSMachineSpiritUpgradeNumbers:_repaint(num, max)
+function HudElementMPSMachineSpiritUpgradeNumbers:_repaint(num, max, kind)
 	local widget = self._widgets_by_name.charge_text
 	local style = widget.style.charges
 
 	if num then
 		local format = cfg.number_format
 
-		widget.content.charges = (format == "current" or format == "uses")
-			and tostring(num)
-			or string.format("%d/%d", num, max)
+		if format == "current" and kind == "overheat" then
+			widget.content.charges = num .. "%"
+		else
+			widget.content.charges = (format == "current" or format == "uses")
+				and tostring(num)
+				or string.format("%d/%d", num, max)
+		end
 
-		local r, g, b = mod.charge_color(num)
+		local r, g, b = mod.charge_color(num, max)
 		local text_color = style.text_color
 		local offset = style.offset
 
@@ -157,7 +182,7 @@ function HudElementMPSMachineSpiritUpgradeNumbers:_hide_hint()
 	end
 end
 
-function HudElementMPSMachineSpiritUpgradeNumbers:_update_hint(player_extensions, num)
+function HudElementMPSMachineSpiritUpgradeNumbers:_update_hint(player_extensions, num, max)
 	local want_underline = cfg.underline_enabled
 	local want_countdown = cfg.hint_countdown
 
@@ -171,7 +196,7 @@ function HudElementMPSMachineSpiritUpgradeNumbers:_update_hint(player_extensions
 	local phase, progress, charges, _, remaining, in_recovery, cost
 
 	if t then
-		phase, progress, charges, _, remaining, in_recovery, cost = mod.recharge_state(player_extensions, t)
+		_, phase, progress, charges, _, remaining, in_recovery, cost = mod.display_state(player_extensions, t)
 	end
 
 	if phase ~= "recharge" then
@@ -185,7 +210,7 @@ function HudElementMPSMachineSpiritUpgradeNumbers:_update_hint(player_extensions
 	local font_size = cfg.font_size
 	local ox = cfg.numbers_offset_x
 	local oy = cfg.numbers_offset_y
-	local r, g, b = mod.charge_color(num)
+	local r, g, b = mod.charge_color(num, max)
 
 	if want_underline then
 		local length = font_size * 1.6
@@ -249,18 +274,19 @@ function HudElementMPSMachineSpiritUpgradeNumbers:update(dt, t, ui_renderer, ren
 
 	local parent = self._parent
 	local player_extensions = parent and parent:player_extensions()
-	local num, max = self:_charges(player_extensions)
+	local num, max, kind = self:_charges(player_extensions)
 	local version = cfg.version
 
-	if num ~= self._num or max ~= self._max or version ~= self._cfg_version then
+	if num ~= self._num or max ~= self._max or kind ~= self._kind or version ~= self._cfg_version then
 		self._num = num
 		self._max = max
+		self._kind = kind
 		self._cfg_version = version
 
-		self:_repaint(num, max)
+		self:_repaint(num, max, kind)
 	end
 
-	self:_update_hint(player_extensions, num)
+	self:_update_hint(player_extensions, num, max)
 end
 
 return HudElementMPSMachineSpiritUpgradeNumbers
