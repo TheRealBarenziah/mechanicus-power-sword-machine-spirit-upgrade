@@ -41,6 +41,7 @@ local DEFAULTS = {
 	bar_enabled = false,
 	bar_mode = "windup",
 	bar_shape = "horizontal",
+	bar_cell_uses = 0,
 	bar_length = 200,
 	bar_thickness = 8,
 	bar_offset_x = 0,
@@ -89,7 +90,7 @@ local NUMBERS = {
 	"mid_max", "mid_r", "mid_g", "mid_b",
 	"numbers_offset_x", "numbers_offset_y",
 	"countdown_font_size", "countdown_opacity", "countdown_offset_x", "countdown_offset_y",
-	"bar_length", "bar_thickness", "bar_offset_x", "bar_offset_y", "bar_opacity",
+	"bar_cell_uses", "bar_length", "bar_thickness", "bar_offset_x", "bar_offset_y", "bar_opacity",
 	"track_r", "track_g", "track_b", "track_opacity",
 	"regen_r", "regen_g", "regen_b",
 	"retention_r", "retention_g", "retention_b",
@@ -344,7 +345,13 @@ local function cooldown_recharge_state(player_extensions, slot_name, weapon_temp
 	local cooldown = tweak_data.cooldown
 
 	if not cooldown or cooldown <= 0 then
-		return nil
+		-- no refill timer to animate (2h force sword refunds charges on kills);
+		-- report the level itself so the bar still has something to draw
+		if max <= num then
+			return "full", 1, num, max, 0, false, cost
+		end
+
+		return "level", 0, num, max, 0, false, cost
 	end
 
 	local prev_num = recharge.prev_num
@@ -531,7 +538,7 @@ function mod.display_state(player_extensions, t)
 	end
 
 	-- covers the passive-refill weapons too (Arc Maul, maul & shield); weapons
-	-- with neither a cooldown nor a passive interval get no timed state
+	-- with no refill timer report a static charge level
 	return kind, cooldown_recharge_state(player_extensions, slot_name, weapon_template, t)
 end
 
@@ -552,20 +559,6 @@ mod:register_hud_element({
 		"alive",
 	},
 })
-
-mod:hook("HudElementWeaponCounter", "_weapon_counter_settings", function(func, self, slot_name)
-	local settings = func(self, slot_name)
-
-	if not settings or not mod:is_enabled() or cfg.stock_gauge ~= "hidden" then
-		return settings
-	end
-
-	if mod.display_kind(settings.weapon_counter_type) then
-		return nil
-	end
-
-	return settings
-end)
 
 local function ensure_transformable(widget)
 	if widget.msu_num_passes then
@@ -648,6 +641,7 @@ local PULSE_OUTLINE_PEAK = 2
 
 local transformed_widgets = setmetatable({}, { __mode = "k" })
 local tinted_widgets = setmetatable({}, { __mode = "k" })
+local hidden_widgets = setmetatable({}, { __mode = "k" })
 
 -- Overheat weapons draw a single material bar whose style colour starts as a
 -- shared settings table - swap in an own table before tinting, never mutate it.
@@ -746,6 +740,50 @@ local function restore_widget(widget)
 	widget.msu_moved = false
 end
 
+-- "Hidden" hides the stock gauge only where one of this mod's elements stands
+-- in for it: the numbers cover every handled weapon, the bar covers overheat
+-- weapons in either mode but charge weapons only in recharge mode (a level
+-- readout stands in when the weapon has no refill timer). A weapon nothing
+-- replaces keeps its stock gauge.
+local function draws_replacement(self, slot_name)
+	if not cfg.numbers_enabled and not cfg.bar_enabled then
+		return false
+	end
+
+	if not mod.in_gameplay() then
+		return false
+	end
+
+	local player_extensions = self._parent:player_extensions()
+
+	if not player_extensions then
+		return false
+	end
+
+	local weapon_template, _, kind = charge_weapon_template(player_extensions, slot_name)
+
+	if not weapon_template then
+		return false
+	end
+
+	if cfg.numbers_enabled or kind == "overheat" then
+		return true
+	end
+
+	return cfg.bar_mode == "recharge"
+end
+
+local function unhide_widget(widget)
+	local content = widget.content
+
+	if content then
+		content.visible = nil
+	end
+
+	widget.msu_content_hidden = nil
+	hidden_widgets[widget] = nil
+end
+
 mod:hook_safe("HudElementWeaponCounter", "_update_slot", function(self, dt, t, slot_name)
 	local slot_widgets = self._slot_widgets
 	local widget = slot_widgets and slot_widgets[slot_name]
@@ -756,6 +794,23 @@ mod:hook_safe("HudElementWeaponCounter", "_update_slot", function(self, dt, t, s
 
 	local counter_type = self._slot_weapon_counter_type[slot_name]
 	local handled = mod:is_enabled() and mod.display_kind(counter_type) ~= nil
+
+	-- Hide by keeping the widget alive and killing its passes (content.visible
+	-- is a kill switch the engine checks separately from widget.visible, and
+	-- nothing stock writes it on counter widgets). Suppressing the counter's
+	-- settings instead would unmake the widget, and mods that watch the stock
+	-- counter to yield to it (PerilGauge) would rightly stop yielding.
+	if handled and cfg.stock_gauge == "hidden" and draws_replacement(self, slot_name) then
+		local content = widget.content
+
+		if content then
+			content.visible = false
+			widget.msu_content_hidden = true
+			hidden_widgets[widget] = true
+		end
+	elseif widget.msu_content_hidden then
+		unhide_widget(widget)
+	end
 
 	if handled and cfg.stock_gauge == "transformed" then
 		ensure_transformable(widget)
@@ -787,6 +842,10 @@ function mod.on_disabled()
 
 	for widget in pairs(tinted_widgets) do
 		untint_widget(widget)
+	end
+
+	for widget in pairs(hidden_widgets) do
+		unhide_widget(widget)
 	end
 end
 

@@ -3,7 +3,8 @@ local mod = get_mod("machine_spirit_upgrade")
 local UIWidget = require("scripts/managers/ui/ui_widget")
 local UIWorkspaceSettings = require("scripts/settings/ui/ui_workspace_settings")
 
-local MAX_CELLS = 12
+local MAX_CELLS = 40
+local AUTO_MAX_CELLS = 12
 local CELL_GAP = 2
 
 local cfg = mod.cfg
@@ -270,20 +271,43 @@ function HudElementMPSMachineSpiritUpgradeBar:_draw_recharge(kind, phase, progre
 		cells = max
 		filled = fill * max
 	else
-		fill = mod.use_progress(phase, progress, num, cost)
 		cells = max
 		filled = phase == "full" and max or num + progress
 
-		if cells > MAX_CELLS and cost and cost > 1 then
+		if cost and cost > 1 then
 			cells = math.floor(cells / cost)
 			filled = filled / cost
 		end
+
+		-- with no refill timer there is no tick to show; the level is the bar
+		if phase == "level" then
+			fill = cells > 0 and filled / cells or 0
+		else
+			fill = mod.use_progress(phase, progress, num, cost)
+		end
+	end
+
+	-- A cell spans a whole number of uses: the configured count, or on "Auto"
+	-- the smallest that keeps at most AUTO_MAX_CELLS cells. Either way the
+	-- count is clamped so cells fit the pass pool (an uneven tail shortens the
+	-- last bucket only), so segments never silently fall back to a solid bar.
+	local per_cell = cfg.bar_cell_uses
+
+	if not per_cell or per_cell < 1 then
+		per_cell = math.ceil(cells / AUTO_MAX_CELLS)
+	end
+
+	per_cell = math.max(per_cell, math.ceil(cells / MAX_CELLS))
+
+	if per_cell > 1 then
+		cells = math.ceil(cells / per_cell)
+		filled = filled / per_cell
 	end
 
 	if cfg.bar_shape == "segments" and cells >= 1 and cells <= MAX_CELLS then
 		style.fill.color[1] = 0
 
-		local cell_w = (length - CELL_GAP * (cells - 1)) / cells
+		local cell_w = math.max((length - CELL_GAP * (cells - 1)) / cells, 1)
 		local left = ox - length * 0.5 + cell_w * 0.5
 
 		for ii = 1, cells do
@@ -355,6 +379,9 @@ function HudElementMPSMachineSpiritUpgradeBar:update(dt, t, ui_renderer, render_
 	if not drawn then
 		self:_hide()
 	end
+
+	-- one flag skips all 42 passes in UIWidget.draw while nothing is shown
+	self._widgets_by_name.charge_bar.visible = drawn
 end
 
 return HudElementMPSMachineSpiritUpgradeBar

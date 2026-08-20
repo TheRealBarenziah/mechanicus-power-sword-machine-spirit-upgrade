@@ -532,11 +532,47 @@ return {
 		ja = "形状",
 	},
 	bar_shape_description = {
-		en = "'One cell per charge' applies to the recharge tick; the wind-up bar splits at its stage boundaries instead. Past 12 charges the cells count special uses (Arc Maul: 8). Cells run horizontally.",
-		ru = "«Ячейка на заряд» действует для тика перезарядки; полоса замаха делится по границам стадий. Свыше 12 зарядов ячейки считают применения (дуговая булава: 8). Ячейки всегда горизонтальны.",
-		["zh-cn"] = "「每充能一格」仅用于回充计时；蓄力条按阶段边界分段。充能超过 12 时，格子改为按使用次数计（电弧锤：8 格）。格子始终水平排列。",
-		["zh-tw"] = "「每充能一格」僅用於回充計時；蓄力條按階段邊界分段。充能超過 12 時，格子改為按使用次數計（電弧鎚：8 格）。格子始終水平排列。",
-		ja = "「1チャージ1マス」はリチャージ表示用。溜めバーは段階の境界で区切る。チャージが 12 を超えると使用回数でマスを数える（アークモール：8）。マスは常に横並び。",
+		en = "'One cell per charge' counts special uses (Arc Maul: 8); how many uses share one cell is the setting below. The wind-up bar splits at its stage boundaries instead. Cells run horizontally.",
+		ru = "«Ячейка на заряд» считает применения (дуговая булава: 8); сколько применений приходится на ячейку — настройка ниже. Полоса замаха делится по границам стадий. Ячейки всегда горизонтальны.",
+		["zh-cn"] = "「每充能一格」按使用次数计（电弧锤：8 格）；每格包含多少次使用由下方设置决定。蓄力条按阶段边界分段。格子始终水平排列。",
+		["zh-tw"] = "「每充能一格」按使用次數計（電弧鎚：8 格）；每格包含多少次使用由下方設置決定。蓄力條按階段邊界分段。格子始終水平排列。",
+		ja = "「1チャージ1マス」は使用回数でマスを数える（アークモール：8）。1マスが何回分かは下の設定で決まる。溜めバーは段階の境界で区切る。マスは常に横並び。",
+	},
+	bar_cell_uses = {
+		en = "Uses per cell",
+		ru = "Применений на ячейку",
+		["zh-cn"] = "每格使用次数",
+		["zh-tw"] = "每格使用次數",
+		ja = "1マスあたりの使用回数",
+	},
+	bar_cell_uses_description = {
+		en = "How many special uses one cell spans. Auto picks the smallest whole number that fits 12 cells, so it can differ per weapon; a fixed value means the same on every weapon. Up to 40 cells are drawn - raise Length if they get too thin.",
+		ru = "Сколько применений приходится на одну ячейку. «Авто» берёт наименьшее целое, укладывающееся в 12 ячеек, поэтому значение может отличаться от оружия к оружию; фиксированное значение одинаково для всего оружия. Рисуется до 40 ячеек — увеличьте длину, если они слишком тонкие.",
+		["zh-cn"] = "一格代表多少次使用。「自动」取能放进 12 格的最小整数，因此不同武器可能不同；固定值在所有武器上含义一致。最多绘制 40 格——太细时请加大长度。",
+		["zh-tw"] = "一格代表多少次使用。「自動」取能放進 12 格的最小整數，因此不同武器可能不同；固定值在所有武器上含義一致。最多繪製 40 格——太細時請加大長度。",
+		ja = "1マスが何回分の使用に当たるか。「自動」は12マス以内に収まる最小の整数を選ぶため武器ごとに変わりうる。固定値ならどの武器でも同じ意味になる。最大40マス描画 — 細すぎる場合は長さを上げること。",
+	},
+	bar_cell_uses_auto = {
+		en = "Auto (up to 12 cells)",
+		ru = "Авто (до 12 ячеек)",
+		["zh-cn"] = "自动（最多 12 格）",
+		["zh-tw"] = "自動（最多 12 格）",
+		ja = "自動（最大12マス）",
+	},
+	bar_cell_uses_1 = {
+		en = "1",
+	},
+	bar_cell_uses_2 = {
+		en = "2",
+	},
+	bar_cell_uses_3 = {
+		en = "3",
+	},
+	bar_cell_uses_4 = {
+		en = "4",
+	},
+	bar_cell_uses_5 = {
+		en = "5",
 	},
 	bar_shape_horizontal = {
 		en = "Horizontal",
@@ -799,11 +835,11 @@ return {
 		ja = "標準ゲージ",
 	},
 	stock_gauge_description = {
-		en = "The game's own charge arc or heat bar for covered weapons.",
-		ru = "Игровая дуга зарядов или полоса нагрева у охваченного оружия.",
-		["zh-cn"] = "游戏自带的充能弧或热量条（针对覆盖的武器）。",
-		["zh-tw"] = "遊戲自帶的充能弧或熱量條（針對覆蓋的武器）。",
-		ja = "ゲーム本来のチャージ弧または熱バー（対象武器のみ）。",
+		en = "The game's own charge arc or heat bar for covered weapons. \"Hidden\" applies only while the numbers or bar stand in for it - a weapon neither can show keeps its stock gauge.",
+		ru = "Игровая дуга зарядов или полоса нагрева у охваченного оружия. «Скрыта» действует только там, где её заменяют цифры или полоса — оружие, которое им нечем показать, сохраняет штатную шкалу.",
+		["zh-cn"] = "游戏自带的充能弧或热量条（针对覆盖的武器）。“隐藏”仅在数字或条形图代替它时生效——两者都无法显示的武器会保留原版充能表。",
+		["zh-tw"] = "遊戲自帶的充能弧或熱量條（針對覆蓋的武器）。「隱藏」僅在數字或條形圖代替它時生效——兩者都無法顯示的武器會保留原版充能表。",
+		ja = "ゲーム本来のチャージ弧または熱バー（対象武器のみ）。「非表示」は数値またはバーが代わりに表示される場合のみ有効で、どちらも表示できない武器では標準ゲージが残ります。",
 	},
 	stock_gauge_hidden = {
 		en = "Hidden",
